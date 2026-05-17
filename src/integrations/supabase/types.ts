@@ -14,7 +14,183 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bill_charges: {
+        Row: {
+          amount: number
+          bill_id: string
+          created_at: string
+          id: string
+          label: string
+        }
+        Insert: {
+          amount?: number
+          bill_id: string
+          created_at?: string
+          id?: string
+          label: string
+        }
+        Update: {
+          amount?: number
+          bill_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_charges_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bills: {
+        Row: {
+          bs_month: number
+          bs_year: number
+          created_at: string
+          elec_curr_reading: number | null
+          elec_direct_amount: number
+          elec_prev_reading: number | null
+          elec_rate: number | null
+          elec_service_charge: number
+          electricity_mode: string
+          id: string
+          notes: string | null
+          owner_id: string
+          rent_amount: number
+          tenant_id: string
+          updated_at: string
+          water_amount: number
+        }
+        Insert: {
+          bs_month: number
+          bs_year: number
+          created_at?: string
+          elec_curr_reading?: number | null
+          elec_direct_amount?: number
+          elec_prev_reading?: number | null
+          elec_rate?: number | null
+          elec_service_charge?: number
+          electricity_mode?: string
+          id?: string
+          notes?: string | null
+          owner_id: string
+          rent_amount?: number
+          tenant_id: string
+          updated_at?: string
+          water_amount?: number
+        }
+        Update: {
+          bs_month?: number
+          bs_year?: number
+          created_at?: string
+          elec_curr_reading?: number | null
+          elec_direct_amount?: number
+          elec_prev_reading?: number | null
+          elec_rate?: number | null
+          elec_service_charge?: number
+          electricity_mode?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          rent_amount?: number
+          tenant_id?: string
+          updated_at?: string
+          water_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_paid: number
+          bill_id: string
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+          owner_id: string
+          payment_date_bs: string
+        }
+        Insert: {
+          amount_paid: number
+          bill_id: string
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          owner_id: string
+          payment_date_bs: string
+        }
+        Update: {
+          amount_paid?: number
+          bill_id?: string
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          owner_id?: string
+          payment_date_bs?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          move_in_date_bs: string | null
+          name: string
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          room_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          move_in_date_bs?: string | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          room_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          move_in_date_bs?: string | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          room_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
