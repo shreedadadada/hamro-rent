@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // ---------- Tenants ----------
 
@@ -189,4 +190,49 @@ export const deletePayment = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("payments").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+// ---------- Portal & exports ----------
+
+export const regenerateShareToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ tenant_id: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { data: row, error } = await context.supabase
+      .from("tenants")
+      .update({ share_token: crypto.randomUUID() })
+      .eq("id", data.tenant_id)
+      .select("share_token")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const getTenantPortal = createServerFn({ method: "GET" })
+  .inputValidator((input: { token: string }) =>
+    z.object({ token: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { data: result, error } = await supabaseAdmin.rpc("get_tenant_portal", { _token: data.token });
+    if (error) throw new Error(error.message);
+    if (!result || !(result as any).tenant) throw new Error("Portal link not found or revoked.");
+    return result as { tenant: any; bills: any[] };
+  });
+
+export const exportAllData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [tenants, bills, charges, payments] = await Promise.all([
+      context.supabase.from("tenants").select("*"),
+      context.supabase.from("bills").select("*"),
+      context.supabase.from("bill_charges").select("*"),
+      context.supabase.from("payments").select("*"),
+    ]);
+    return {
+      exported_at: new Date().toISOString(),
+      app: "HamroRent",
+      tenants: tenants.data ?? [],
+      bills: bills.data ?? [],
+      bill_charges: charges.data ?? [],
+      payments: payments.data ?? [],
+    };
   });

@@ -163,6 +163,7 @@ export type Database = {
           owner_id: string
           phone: string | null
           room_number: string | null
+          share_token: string
           updated_at: string
         }
         Insert: {
@@ -175,6 +176,7 @@ export type Database = {
           owner_id: string
           phone?: string | null
           room_number?: string | null
+          share_token?: string
           updated_at?: string
         }
         Update: {
@@ -187,6 +189,7 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           room_number?: string | null
+          share_token?: string
           updated_at?: string
         }
         Relationships: []
@@ -196,7 +199,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_tenant_portal: { Args: { _token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

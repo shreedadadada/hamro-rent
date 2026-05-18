@@ -4,10 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 import { AppShell, StatusBadge } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { listTenants, listAllBills } from "@/lib/hamrorent.functions";
+import { listTenants, listAllBills, exportAllData } from "@/lib/hamrorent.functions";
 import { billTotal, paymentsTotal, statusFor, formatNpr } from "@/lib/bill-math";
 import { bsLabel, currentBs } from "@/lib/bs-calendar";
-import { Plus } from "lucide-react";
+import { exportJsonBackup } from "@/lib/exports";
+import { toast } from "sonner";
+import { Plus, Download } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — HamroRent" }] }),
@@ -17,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const fetchTenants = useServerFn(listTenants);
   const fetchBills = useServerFn(listAllBills);
+  const backup = useServerFn(exportAllData);
+
 
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: () => fetchTenants() });
   const billsQ = useQuery({ queryKey: ["bills"], queryFn: () => fetchBills() });
@@ -51,9 +56,15 @@ function DashboardPage() {
           <p className="text-sm text-muted-foreground">{bsLabel(bs.year, bs.month)}</p>
           <h1 className="font-display text-4xl">Dashboard</h1>
         </div>
-        <Button asChild>
-          <Link to="/tenants/new"><Plus className="size-4" /> Add tenant</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={async () => {
+            try { const d = await backup(); exportJsonBackup(d, `hamrorent-backup-${new Date().toISOString().slice(0,10)}.json`); toast.success("Backup downloaded"); }
+            catch (e: any) { toast.error(e.message); }
+          }}><Download className="size-4" /> Backup</Button>
+          <Button asChild>
+            <Link to="/tenants/new"><Plus className="size-4" /> Add tenant</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

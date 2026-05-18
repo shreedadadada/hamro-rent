@@ -18,15 +18,21 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
   getTenant, listBillsForTenant, createBill, recordPayment,
-  deleteBill, deletePayment, setTenantActive,
+  deleteBill, deletePayment, setTenantActive, regenerateShareToken,
 } from "@/lib/hamrorent.functions";
 import {
   billTotal, paymentsTotal, statusFor, formatNpr, electricityTotal,
 } from "@/lib/bill-math";
 import { BS_MONTHS, BS_YEARS, bsLabel, currentBs } from "@/lib/bs-calendar";
+import { waLink, billMessage, reminderMessage, receiptMessage } from "@/lib/whatsapp";
+import { exportTenantExcel, exportTenantPdf } from "@/lib/exports";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, MessageCircle, Download, Share2, Copy, RefreshCw } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/tenants/$tenantId")({
   component: TenantDetailPage,
@@ -53,14 +59,20 @@ function TenantDetailPage() {
   const bills = (billsQ.data ?? []) as any[];
 
   const lifetime = useMemo(() => {
-    let billed = 0, paid = 0;
+    let billed = 0, paid = 0, credit = 0;
     for (const b of bills) {
       const t = billTotal(b, b.bill_charges ?? []);
+      const p = paymentsTotal(b.payments ?? []);
       billed += t;
-      paid += paymentsTotal(b.payments ?? []);
+      paid += p;
+      if (p > t) credit += p - t; // overpayment carry-forward
     }
-    return { billed, paid, outstanding: billed - paid };
+    return { billed, paid, outstanding: Math.max(0, billed - paid), credit };
   }, [bills]);
+
+  const portalUrl = tenant?.share_token
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/t/${tenant.share_token}`
+    : "";
 
   const handleArchiveToggle = async () => {
     if (!tenant) return;
@@ -92,7 +104,17 @@ function TenantDetailPage() {
           </p>
           {tenant.notes && <p className="mt-2 max-w-2xl text-sm text-muted-foreground italic">{tenant.notes}</p>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ShareDialog tenant={tenant} portalUrl={portalUrl} onRegenerated={() => qc.invalidateQueries({ queryKey: ["tenant", tenantId] })} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline"><Download className="size-4" /> Export</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportTenantExcel(tenant, bills)}>Excel (.xlsx)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportTenantPdf(tenant, bills)}>PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleArchiveToggle}>
             {tenant.is_active ? "Archive" : "Reactivate"}
           </Button>
@@ -100,11 +122,18 @@ function TenantDetailPage() {
         </div>
       </div>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      <div className="mb-8 grid gap-4 md:grid-cols-4">
         <StatCard label="Total billed" value={formatNpr(lifetime.billed)} />
         <StatCard label="Total collected" value={formatNpr(lifetime.paid)} />
         <StatCard label="Outstanding" value={formatNpr(lifetime.outstanding)} highlight={lifetime.outstanding > 0} />
+        <StatCard label="Credit (carry-forward)" value={formatNpr(lifetime.credit)} />
       </div>
+
+      {lifetime.credit > 0 && (
+        <div className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
+          <strong>{formatNpr(lifetime.credit)}</strong> overpaid in prior months — apply this as a credit when creating the next bill (add a negative charge labeled "Previous credit") or record it manually.
+        </div>
+      )}
 
       <h2 className="mb-4 font-display text-2xl">Monthly bills</h2>
       {billsQ.isLoading ? (
@@ -119,6 +148,8 @@ function TenantDetailPage() {
             <BillCard
               key={b.id}
               bill={b}
+              tenant={tenant}
+              portalUrl={portalUrl}
               onRefresh={() => qc.invalidateQueries({ queryKey: ["bills", tenantId] })}
             />
           ))}
@@ -132,6 +163,50 @@ function TenantDetailPage() {
   );
 }
 
+function ShareDialog({ tenant, portalUrl, onRegenerated }: { tenant: any; portalUrl: string; onRegenerated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const regen = useServerFn(regenerateShareToken);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(portalUrl);
+    toast.success("Link copied");
+  };
+  const handleRegen = async () => {
+    if (!confirm("Generate a new link? The old one will stop working immediately.")) return;
+    try {
+      await regen({ data: { tenant_id: tenant.id } } as any);
+      onRegenerated();
+      toast.success("New link generated");
+    } catch (e: any) { toast.error(e.message); }
+  };
+  const waShare = waLink(tenant.phone ?? "", `Namaste ${tenant.name},\n\nYou can view your rent ledger any time here:\n${portalUrl}`);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><Share2 className="size-4" /> Share portal</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Tenant portal link</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Anyone with this link can view (read-only) {tenant.name}'s bills and payment history. No signup needed.
+        </p>
+        <div className="flex gap-2">
+          <Input readOnly value={portalUrl} className="font-mono text-xs" />
+          <Button type="button" variant="outline" onClick={handleCopy}><Copy className="size-4" /></Button>
+        </div>
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+          <Button type="button" variant="ghost" onClick={handleRegen}><RefreshCw className="size-4" /> Regenerate</Button>
+          <Button type="button" asChild>
+            <a href={waShare} target="_blank" rel="noreferrer"><MessageCircle className="size-4" /> Send on WhatsApp</a>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className={`rounded-xl border p-5 ${highlight ? "border-warning/50 bg-warning/10" : "border-border bg-card"}`}>
@@ -142,7 +217,7 @@ function StatCard({ label, value, highlight }: { label: string; value: string; h
 }
 
 // ---------- Bill Card ----------
-function BillCard({ bill, onRefresh }: { bill: any; onRefresh: () => void }) {
+function BillCard({ bill, tenant, portalUrl, onRefresh }: { bill: any; tenant: any; portalUrl: string; onRefresh: () => void }) {
   const [open, setOpen] = useState(false);
   const charges = bill.bill_charges ?? [];
   const payments = bill.payments ?? [];
@@ -233,7 +308,32 @@ function BillCard({ bill, onRefresh }: { bill: any; onRefresh: () => void }) {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <MessageCircle className="size-3.5" /> WhatsApp
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <a href={waLink(tenant.phone ?? "", billMessage(tenant.name, bill, portalUrl))} target="_blank" rel="noreferrer">Send bill</a>
+                </DropdownMenuItem>
+                {remaining > 0 && (
+                  <DropdownMenuItem asChild>
+                    <a href={waLink(tenant.phone ?? "", reminderMessage(tenant.name, bill))} target="_blank" rel="noreferrer">Send reminder</a>
+                  </DropdownMenuItem>
+                )}
+                {payments.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <a href={waLink(tenant.phone ?? "", receiptMessage(tenant.name, bill, payments[payments.length - 1]))} target="_blank" rel="noreferrer">Send latest receipt</a>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
@@ -254,6 +354,7 @@ function BillCard({ bill, onRefresh }: { bill: any; onRefresh: () => void }) {
               </AlertDialogContent>
             </AlertDialog>
           </div>
+
         </div>
       )}
     </div>
