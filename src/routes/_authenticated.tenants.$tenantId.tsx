@@ -18,15 +18,21 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
   getTenant, listBillsForTenant, createBill, recordPayment,
-  deleteBill, deletePayment, setTenantActive,
+  deleteBill, deletePayment, setTenantActive, regenerateShareToken,
 } from "@/lib/hamrorent.functions";
 import {
   billTotal, paymentsTotal, statusFor, formatNpr, electricityTotal,
 } from "@/lib/bill-math";
 import { BS_MONTHS, BS_YEARS, bsLabel, currentBs } from "@/lib/bs-calendar";
+import { waLink, billMessage, reminderMessage, receiptMessage } from "@/lib/whatsapp";
+import { exportTenantExcel, exportTenantPdf } from "@/lib/exports";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, MessageCircle, Download, Share2, Copy, RefreshCw } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/tenants/$tenantId")({
   component: TenantDetailPage,
