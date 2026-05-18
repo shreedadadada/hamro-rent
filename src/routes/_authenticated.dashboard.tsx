@@ -4,10 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 import { AppShell, StatusBadge } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { listTenants, listAllBills } from "@/lib/hamrorent.functions";
+import { listTenants, listAllBills, exportAllData } from "@/lib/hamrorent.functions";
 import { billTotal, paymentsTotal, statusFor, formatNpr } from "@/lib/bill-math";
 import { bsLabel, currentBs } from "@/lib/bs-calendar";
-import { Plus } from "lucide-react";
+import { exportJsonBackup } from "@/lib/exports";
+import { toast } from "sonner";
+import { Plus, Download } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — HamroRent" }] }),
