@@ -56,9 +56,15 @@ function DashboardPage() {
           <p className="text-sm text-muted-foreground">{bsLabel(bs.year, bs.month)}</p>
           <h1 className="font-display text-4xl">Dashboard</h1>
         </div>
-        <Button asChild>
-          <Link to="/tenants/new"><Plus className="size-4" /> Add tenant</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={async () => {
+            try { const d = await backup(); exportJsonBackup(d, `hamrorent-backup-${new Date().toISOString().slice(0,10)}.json`); toast.success("Backup downloaded"); }
+            catch (e: any) { toast.error(e.message); }
+          }}><Download className="size-4" /> Backup</Button>
+          <Button asChild>
+            <Link to="/tenants/new"><Plus className="size-4" /> Add tenant</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
