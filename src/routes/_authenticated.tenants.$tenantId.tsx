@@ -59,14 +59,20 @@ function TenantDetailPage() {
   const bills = (billsQ.data ?? []) as any[];
 
   const lifetime = useMemo(() => {
-    let billed = 0, paid = 0;
+    let billed = 0, paid = 0, credit = 0;
     for (const b of bills) {
       const t = billTotal(b, b.bill_charges ?? []);
+      const p = paymentsTotal(b.payments ?? []);
       billed += t;
-      paid += paymentsTotal(b.payments ?? []);
+      paid += p;
+      if (p > t) credit += p - t; // overpayment carry-forward
     }
-    return { billed, paid, outstanding: billed - paid };
+    return { billed, paid, outstanding: Math.max(0, billed - paid), credit };
   }, [bills]);
+
+  const portalUrl = tenant?.share_token
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/t/${tenant.share_token}`
+    : "";
 
   const handleArchiveToggle = async () => {
     if (!tenant) return;
@@ -98,7 +104,17 @@ function TenantDetailPage() {
           </p>
           {tenant.notes && <p className="mt-2 max-w-2xl text-sm text-muted-foreground italic">{tenant.notes}</p>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ShareDialog tenant={tenant} portalUrl={portalUrl} onRegenerated={() => qc.invalidateQueries({ queryKey: ["tenant", tenantId] })} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline"><Download className="size-4" /> Export</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportTenantExcel(tenant, bills)}>Excel (.xlsx)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportTenantPdf(tenant, bills)}>PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleArchiveToggle}>
             {tenant.is_active ? "Archive" : "Reactivate"}
           </Button>
@@ -106,11 +122,18 @@ function TenantDetailPage() {
         </div>
       </div>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      <div className="mb-8 grid gap-4 md:grid-cols-4">
         <StatCard label="Total billed" value={formatNpr(lifetime.billed)} />
         <StatCard label="Total collected" value={formatNpr(lifetime.paid)} />
         <StatCard label="Outstanding" value={formatNpr(lifetime.outstanding)} highlight={lifetime.outstanding > 0} />
+        <StatCard label="Credit (carry-forward)" value={formatNpr(lifetime.credit)} />
       </div>
+
+      {lifetime.credit > 0 && (
+        <div className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
+          <strong>{formatNpr(lifetime.credit)}</strong> overpaid in prior months — apply this as a credit when creating the next bill (add a negative charge labeled "Previous credit") or record it manually.
+        </div>
+      )}
 
       <h2 className="mb-4 font-display text-2xl">Monthly bills</h2>
       {billsQ.isLoading ? (
@@ -125,6 +148,8 @@ function TenantDetailPage() {
             <BillCard
               key={b.id}
               bill={b}
+              tenant={tenant}
+              portalUrl={portalUrl}
               onRefresh={() => qc.invalidateQueries({ queryKey: ["bills", tenantId] })}
             />
           ))}
@@ -137,6 +162,50 @@ function TenantDetailPage() {
     </AppShell>
   );
 }
+
+function ShareDialog({ tenant, portalUrl, onRegenerated }: { tenant: any; portalUrl: string; onRegenerated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const regen = useServerFn(regenerateShareToken);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(portalUrl);
+    toast.success("Link copied");
+  };
+  const handleRegen = async () => {
+    if (!confirm("Generate a new link? The old one will stop working immediately.")) return;
+    try {
+      await regen({ data: { tenant_id: tenant.id } } as any);
+      onRegenerated();
+      toast.success("New link generated");
+    } catch (e: any) { toast.error(e.message); }
+  };
+  const waShare = waLink(tenant.phone ?? "", `Namaste ${tenant.name},\n\nYou can view your rent ledger any time here:\n${portalUrl}`);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><Share2 className="size-4" /> Share portal</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Tenant portal link</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Anyone with this link can view (read-only) {tenant.name}'s bills and payment history. No signup needed.
+        </p>
+        <div className="flex gap-2">
+          <Input readOnly value={portalUrl} className="font-mono text-xs" />
+          <Button type="button" variant="outline" onClick={handleCopy}><Copy className="size-4" /></Button>
+        </div>
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+          <Button type="button" variant="ghost" onClick={handleRegen}><RefreshCw className="size-4" /> Regenerate</Button>
+          <Button type="button" asChild>
+            <a href={waShare} target="_blank" rel="noreferrer"><MessageCircle className="size-4" /> Send on WhatsApp</a>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
