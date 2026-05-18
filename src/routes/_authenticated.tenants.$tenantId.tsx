@@ -217,7 +217,7 @@ function StatCard({ label, value, highlight }: { label: string; value: string; h
 }
 
 // ---------- Bill Card ----------
-function BillCard({ bill, onRefresh }: { bill: any; onRefresh: () => void }) {
+function BillCard({ bill, tenant, portalUrl, onRefresh }: { bill: any; tenant: any; portalUrl: string; onRefresh: () => void }) {
   const [open, setOpen] = useState(false);
   const charges = bill.bill_charges ?? [];
   const payments = bill.payments ?? [];
