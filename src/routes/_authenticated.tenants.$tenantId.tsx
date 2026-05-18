@@ -308,7 +308,32 @@ function BillCard({ bill, tenant, portalUrl, onRefresh }: { bill: any; tenant: a
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <MessageCircle className="size-3.5" /> WhatsApp
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <a href={waLink(tenant.phone ?? "", billMessage(tenant.name, bill, portalUrl))} target="_blank" rel="noreferrer">Send bill</a>
+                </DropdownMenuItem>
+                {remaining > 0 && (
+                  <DropdownMenuItem asChild>
+                    <a href={waLink(tenant.phone ?? "", reminderMessage(tenant.name, bill))} target="_blank" rel="noreferrer">Send reminder</a>
+                  </DropdownMenuItem>
+                )}
+                {payments.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <a href={waLink(tenant.phone ?? "", receiptMessage(tenant.name, bill, payments[payments.length - 1]))} target="_blank" rel="noreferrer">Send latest receipt</a>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
@@ -329,6 +354,7 @@ function BillCard({ bill, tenant, portalUrl, onRefresh }: { bill: any; tenant: a
               </AlertDialogContent>
             </AlertDialog>
           </div>
+
         </div>
       )}
     </div>
