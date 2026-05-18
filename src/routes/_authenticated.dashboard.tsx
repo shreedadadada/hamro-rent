@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const fetchTenants = useServerFn(listTenants);
   const fetchBills = useServerFn(listAllBills);
+  const backup = useServerFn(exportAllData);
+
 
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: () => fetchTenants() });
   const billsQ = useQuery({ queryKey: ["bills"], queryFn: () => fetchBills() });
