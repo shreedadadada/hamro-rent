@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_tenant_portal(uuid) FROM anon, authenticated, public;
