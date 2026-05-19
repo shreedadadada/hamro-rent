@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /t/
+Disallow: /dashboard
+Disallow: /tenants
+
+Sitemap: https://hamro-rent.lovable.app/sitemap.xml
