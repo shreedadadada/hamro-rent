@@ -32,7 +32,7 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created. Check your email to verify, then sign in.");
+    toast.success("Account created — you can sign in now.");
     router.navigate({ to: "/login" });
   };
 
