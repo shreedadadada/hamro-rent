@@ -48,43 +48,43 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Warm Sand palette — paper-like, calm landlord ledger */
+/* Hamro Rent — brand palette from logo (deep blue + warm orange on near-white) */
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.985 0.008 85);          /* #faf8f5 sand */
-  --foreground: oklch(0.25 0.015 60);           /* deep walnut */
+  --background: oklch(0.99 0.003 240);          /* near-white, faint cool */
+  --foreground: oklch(0.22 0.04 250);           /* deep navy ink */
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.015 60);
+  --card-foreground: oklch(0.22 0.04 250);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.015 60);
+  --popover-foreground: oklch(0.22 0.04 250);
 
-  --primary: oklch(0.48 0.035 55);              /* clay brown #8b7355 */
-  --primary-foreground: oklch(0.985 0.008 85);
+  --primary: oklch(0.42 0.13 255);              /* logo blue #1f4e8c */
+  --primary-foreground: oklch(0.99 0.003 240);
 
-  --secondary: oklch(0.93 0.018 80);            /* light sand */
-  --secondary-foreground: oklch(0.3 0.02 60);
+  --secondary: oklch(0.94 0.018 250);           /* pale blue tint */
+  --secondary-foreground: oklch(0.28 0.06 255);
 
-  --muted: oklch(0.94 0.012 85);
-  --muted-foreground: oklch(0.48 0.018 65);
+  --muted: oklch(0.96 0.01 240);
+  --muted-foreground: oklch(0.48 0.03 250);
 
-  --accent: oklch(0.78 0.05 70);                /* warm tan */
-  --accent-foreground: oklch(0.25 0.015 60);
+  --accent: oklch(0.72 0.17 55);                /* logo orange #f08a2c */
+  --accent-foreground: oklch(0.2 0.04 250);
 
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
 
-  --success: oklch(0.55 0.12 145);
+  --success: oklch(0.6 0.13 150);
   --success-foreground: oklch(0.99 0 0);
 
-  --warning: oklch(0.72 0.14 75);
-  --warning-foreground: oklch(0.2 0.02 60);
+  --warning: oklch(0.74 0.16 65);
+  --warning-foreground: oklch(0.2 0.04 250);
 
-  --border: oklch(0.88 0.015 80);
-  --input: oklch(0.9 0.015 80);
-  --ring: oklch(0.48 0.035 55);
+  --border: oklch(0.9 0.015 245);
+  --input: oklch(0.92 0.015 245);
+  --ring: oklch(0.42 0.13 255);
 
   --sidebar: oklch(0.96 0.012 82);
   --sidebar-foreground: oklch(0.25 0.015 60);
