@@ -47,7 +47,10 @@ function SignupPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
-        <Link to="/" className="font-display text-2xl">HamroRent</Link>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="Hamro Rent logo" className="size-10 rounded-full object-cover" />
+          <span className="font-display text-2xl">HamroRent</span>
+        </Link>
         <h1 className="mt-6 font-display text-3xl">Create your ledger</h1>
         <p className="mt-1 text-sm text-muted-foreground">Free for landlords. No spreadsheet imports needed.</p>
 
