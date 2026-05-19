@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, Calculator, Calendar, ShieldCheck, Pencil, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import logo from "@/assets/logo.jpeg";
 
 const SITE_URL = "https://hamro-rent.lovable.app";
 
