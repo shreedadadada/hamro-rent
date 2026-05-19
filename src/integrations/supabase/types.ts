@@ -152,6 +152,36 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          hero_cta_label: string
+          hero_eyebrow: string
+          hero_subtitle: string
+          hero_title_accent: string
+          hero_title_lead: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          hero_cta_label?: string
+          hero_eyebrow?: string
+          hero_subtitle?: string
+          hero_title_accent?: string
+          hero_title_lead?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          hero_cta_label?: string
+          hero_eyebrow?: string
+          hero_subtitle?: string
+          hero_title_accent?: string
+          hero_title_lead?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenants: {
         Row: {
           created_at: string
