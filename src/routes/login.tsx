@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import logo from "@/assets/logo.jpeg";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — HamroRent" }] }),
@@ -42,7 +43,10 @@ function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
-        <Link to="/" className="font-display text-2xl">HamroRent</Link>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="Hamro Rent logo" className="size-10 rounded-full object-cover" />
+          <span className="font-display text-2xl">HamroRent</span>
+        </Link>
         <h1 className="mt-6 font-display text-3xl">Welcome back</h1>
         <p className="mt-1 text-sm text-muted-foreground">Sign in to manage your tenants.</p>
 

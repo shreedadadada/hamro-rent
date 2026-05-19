@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, Calculator, Calendar, ShieldCheck, Pencil, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import logo from "@/assets/logo.jpeg";
 
 const SITE_URL = "https://hamro-rent.lovable.app";
 
@@ -126,7 +127,10 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="font-display text-2xl">Hamro Rent</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="Hamro Rent logo" className="size-10 rounded-full object-cover" />
+          <span className="font-display text-2xl">Hamro Rent</span>
+        </Link>
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
