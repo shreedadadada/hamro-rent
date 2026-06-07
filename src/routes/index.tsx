@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Calculator, Calendar, ShieldCheck, Pencil, Save, X } from "lucide-react";
+import {
+  Building2, Calculator, Calendar, ShieldCheck,
+  Pencil, Save, X, ArrowRight, CheckCircle, Zap
+} from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logo from "@/assets/logo.jpeg";
@@ -13,15 +16,16 @@ import logo from "@/assets/logo.jpeg";
 const SITE_URL = "https://hamro-rent.lovable.app";
 
 const DEFAULTS = {
-  hero_eyebrow: "For Nepali landlords",
-  hero_title_lead: "Rent, water, electricity —",
-  hero_title_accent: "tracked the Nepali way.",
+  hero_eyebrow: "Built for Nepali landlords",
+  hero_title_lead: "Your rental hisaab,",
+  hero_title_accent: "finally organised.",
   hero_subtitle:
-    "A calm, paper-like ledger for managing tenants, monthly bills, and payments in Bikram Sambat months. No spreadsheets, no chaos.",
-  hero_cta_label: "Start free",
+    "A clean, professional ledger for tracking tenants, monthly bills, and payments in Bikram Sambat months. Replace spreadsheets with something that actually works.",
+  hero_cta_label: "Start free — no card required",
 };
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/")(
+  {
   head: () => ({
     meta: [
       { title: "Hamro Rent — Rent, Water & Electricity Ledger for Nepali Landlords" },
@@ -53,28 +57,15 @@ export const Route = createFileRoute("/")({
             {
               "@type": "Organization",
               name: "Hamro Rent",
-              alternateName: ["HamroRent", "Hamro Rent App"],
               url: SITE_URL,
               logo: SITE_URL + "/favicon.ico",
-            },
-            {
-              "@type": "WebSite",
-              name: "Hamro Rent",
-              url: SITE_URL,
-              inLanguage: "en-NP",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: SITE_URL + "/?q={search_term_string}",
-                "query-input": "required name=search_term_string",
-              },
             },
             {
               "@type": "SoftwareApplication",
               name: "Hamro Rent",
               applicationCategory: "BusinessApplication",
               operatingSystem: "Web",
-              description:
-                "Rent, water and electricity ledger for Nepali landlords with Bikram Sambat (BS) monthly billing.",
+              description: "Rent, water and electricity ledger for Nepali landlords with Bikram Sambat (BS) monthly billing.",
               offers: { "@type": "Offer", price: "0", priceCurrency: "NPR" },
             },
           ],
@@ -124,116 +115,218 @@ function Landing() {
     queryClient.invalidateQueries({ queryKey: ["site_settings"] });
   };
 
+  const features = [
+    {
+      icon: Calendar,
+      title: "BS Calendar Billing",
+      desc: "Bills organised by Baisakh through Chaitra. No AD-to-BS conversion guesswork, ever.",
+      color: "text-primary",
+      bg: "bg-primary/8",
+    },
+    {
+      icon: Calculator,
+      title: "Smart Electricity",
+      desc: "Per-unit meter readings or flat NEA amount. Auto-calculated totals on every line.",
+      color: "text-accent",
+      bg: "bg-accent/10",
+    },
+    {
+      icon: Building2,
+      title: "Unlimited Tenants",
+      desc: "Add rooms, edit details, archive when they move out — full history always preserved.",
+      color: "text-success",
+      bg: "bg-success/10",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Private & Secure",
+      desc: "Each landlord sees only their own data. Cloud-backed with row-level security.",
+      color: "text-primary",
+      bg: "bg-primary/8",
+    },
+  ];
+
+  const socialProof = [
+    "Bikram Sambat months built-in",
+    "WhatsApp bill sharing",
+    "Excel & PDF export",
+    "Tenant portal links",
+    "Multi-charge support",
+    "Overpayment tracking",
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Hamro Rent logo" className="size-10 rounded-full object-cover" />
-          <span className="font-display text-2xl">Hamro Rent</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          {isAuthenticated ? (
-            <>
-              {!editing && (
-                <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-                  <Pencil className="mr-1 size-4" /> Edit hero
+      {/* Nav */}
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src={logo} alt="Hamro Rent logo" className="size-9 rounded-xl object-cover shadow-sm" />
+            <span className="font-display text-xl tracking-tight">Hamro Rent</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                {!editing && (
+                  <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="hidden md:flex">
+                    <Pencil className="mr-1.5 size-3.5" /> Edit hero
+                  </Button>
+                )}
+                <Button asChild size="sm">
+                  <Link to="/dashboard">
+                    Open dashboard <ArrowRight className="ml-1.5 size-3.5" />
+                  </Link>
                 </Button>
-              )}
-              <Button asChild>
-                <Link to="/dashboard">Open dashboard</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" asChild>
-                <Link to="/login">Sign in</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/signup">Get started</Link>
-              </Button>
-            </>
-          )}
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">Sign in</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/signup">
+                    Get started <ArrowRight className="ml-1.5 size-3.5" />
+                  </Link>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
+      {/* Hero */}
+      <section className="hero-gradient relative mx-auto max-w-5xl px-6 pb-16 pt-20 text-center md:pt-28">
         {editing ? (
-          <div className="space-y-3 rounded-xl border border-primary/30 bg-card p-6 text-left">
+          <div className="space-y-4 rounded-2xl border border-primary/20 bg-card p-6 text-left shadow-lg">
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Eyebrow</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Eyebrow</label>
               <Input value={draft.hero_eyebrow} onChange={(e) => setDraft({ ...draft, hero_eyebrow: e.target.value })} />
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="text-xs uppercase tracking-wider text-muted-foreground">Title — lead</label>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Title — lead</label>
                 <Input value={draft.hero_title_lead} onChange={(e) => setDraft({ ...draft, hero_title_lead: e.target.value })} />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wider text-muted-foreground">Title — accent (italic)</label>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Title — accent</label>
                 <Input value={draft.hero_title_accent} onChange={(e) => setDraft({ ...draft, hero_title_accent: e.target.value })} />
               </div>
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Subtitle</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Subtitle</label>
               <Textarea rows={3} value={draft.hero_subtitle} onChange={(e) => setDraft({ ...draft, hero_subtitle: e.target.value })} />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Primary CTA label</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">CTA label</label>
               <Input value={draft.hero_cta_label} onChange={(e) => setDraft({ ...draft, hero_cta_label: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" size="sm" onClick={() => { setEditing(false); }}>
-                <X className="mr-1 size-4" /> Cancel
+              <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
+                <X className="mr-1.5 size-3.5" /> Cancel
               </Button>
               <Button size="sm" onClick={handleSave} disabled={saving}>
-                <Save className="mr-1 size-4" /> {saving ? "Saving…" : "Save hero"}
+                <Save className="mr-1.5 size-3.5" /> {saving ? "Saving…" : "Save changes"}
               </Button>
             </div>
           </div>
         ) : (
           <>
-            <p className="mb-4 inline-block rounded-full border border-border bg-card px-3 py-1 text-xs uppercase tracking-wider text-muted-foreground">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground shadow-sm">
+              <Zap className="size-3 text-accent" />
               {hero.hero_eyebrow}
-            </p>
-            <h1 className="font-display text-5xl leading-tight md:text-7xl">
+            </div>
+
+            <h1 className="font-display text-5xl leading-[1.1] tracking-tight md:text-7xl">
               {hero.hero_title_lead}
               <br />
-              <em className="italic text-primary">{hero.hero_title_accent}</em>
+              <em className="italic text-accent not-italic" style={{ fontStyle: "italic" }}>
+                {hero.hero_title_accent}
+              </em>
             </h1>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">{hero.hero_subtitle}</p>
-            <div className="mt-8 flex justify-center gap-3">
-              <Button size="lg" asChild>
+
+            <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
+              {hero.hero_subtitle}
+            </p>
+
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button size="lg" asChild className="rounded-xl px-7 shadow-md">
                 <Link to={isAuthenticated ? "/dashboard" : "/signup"}>
                   {isAuthenticated ? "Go to dashboard" : hero.hero_cta_label}
+                  <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
               {!isAuthenticated && (
-                <Button size="lg" variant="outline" asChild>
+                <Button size="lg" variant="outline" asChild className="rounded-xl px-7">
                   <Link to="/login">Sign in</Link>
                 </Button>
               )}
+            </div>
+
+            {/* Social proof chips */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+              {socialProof.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1 text-xs text-muted-foreground"
+                >
+                  <CheckCircle className="size-3 text-success" />
+                  {item}
+                </span>
+              ))}
             </div>
           </>
         )}
       </section>
 
-      <section className="mx-auto grid max-w-5xl gap-6 px-6 pb-24 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { icon: Calendar, title: "BS calendar billing", desc: "Bills organised by Baisakh through Chaitra — no AD conversion guesswork." },
-          { icon: Calculator, title: "Smart electricity", desc: "Per-unit meter readings or flat NEA amount. Auto totals every line." },
-          { icon: Building2, title: "Unlimited tenants", desc: "Add rooms, edit details, archive when they move out — history is kept." },
-          { icon: ShieldCheck, title: "Private to you", desc: "Each landlord sees only their own data. Backed up in the cloud." },
-        ].map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="rounded-xl border border-border bg-card p-6">
-            <Icon className="mb-3 size-6 text-primary" />
-            <h3 className="mb-1 font-display text-xl">{title}</h3>
-            <p className="text-sm text-muted-foreground">{desc}</p>
-          </div>
-        ))}
+      {/* Features */}
+      <section className="mx-auto max-w-5xl px-6 pb-20">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why Hamro Rent</p>
+          <h2 className="mt-2 font-display text-3xl md:text-4xl">Everything a Nepali landlord needs</h2>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {features.map(({ icon: Icon, title, desc, color, bg }) => (
+            <div
+              key={title}
+              className="group rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-md stat-card"
+            >
+              <div className={`mb-4 inline-flex size-10 items-center justify-center rounded-xl ${bg}`}>
+                <Icon className={`size-5 ${color}`} />
+              </div>
+              <h3 className="mb-2 font-display text-lg leading-tight">{title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
+      {/* CTA strip */}
+      {!isAuthenticated && (
+        <section className="mx-auto max-w-5xl px-6 pb-20">
+          <div className="rounded-2xl bg-primary px-8 py-12 text-center text-primary-foreground">
+            <h2 className="font-display text-3xl md:text-4xl">Ready to ditch the spreadsheets?</h2>
+            <p className="mt-3 text-sm text-primary-foreground/70">
+              Free to start. No credit card. Set up in under 5 minutes.
+            </p>
+            <Button
+              size="lg"
+              asChild
+              className="mt-7 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 px-8 shadow-lg"
+            >
+              <Link to="/signup">
+                Create your free account <ArrowRight className="ml-2 size-4" />
+              </Link>
+            </Button>
+          </div>
+        </section>
+      )}
+
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        Hamro Rent · Built with care for landlords in Nepal
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <img src={logo} alt="Hamro Rent" className="size-5 rounded-md object-cover" />
+          <span className="font-medium text-foreground">Hamro Rent</span>
+        </div>
+        Built with care for landlords in Nepal · © {new Date().getFullYear()}
       </footer>
     </div>
   );
